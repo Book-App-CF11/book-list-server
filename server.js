@@ -3,6 +3,7 @@ const cors = require('cors');
 const PORT = process.env.PORT;
 const pg = require('pg');
 const app = express();
+const CLIENT_URL = process.env.CLIENT_URL;
 
 const conString = process.env.DATABASE_URL;
 const client = new pg.Client(conString);
@@ -11,10 +12,15 @@ client.on('error', err => {
   console.error(err);
 });
 
-app.get('/books', (req, res) => {
+app.use(cors());
+
+app.get('/api/v1/books', (req, res) => {
   client.query(`
-  SELECT title FROM books;`)
-    .then(result => res.send(result.rows));
+  SELECT (book_id, title, author, image_url) FROM books;`)
+    .then(result => res.send(result.rows))
+    .catch(console.error);
 });
+
+app.get('*', (req, res) => res.redirect(CLIENT_URL));
 
 app.listen(PORT, () => console.log('listening on PORT', PORT));
